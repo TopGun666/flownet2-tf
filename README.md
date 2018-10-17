@@ -1,66 +1,53 @@
 ## FlowNet2 (TensorFlow)
 
-This repo contains FlowNet2[1] for TensorFlow. It includes FlowNetC, S, CS, CSS, CSS-ft-sd, SD, and 2.
+This repo includes FlowNetC, S, CS, CSS, CSS-ft-sd, SD, and 2 for TensorFlow. Most part are from this [repo](https://github.com/sampepose/flownet2-tf), and we have made some modifications:
+* It can deal with arbitrary size of input now.
+* After installation, just copy the whole folder `FlowNet2_src` to your codebase to use. See `demo.py` for details.
+
+### Environment
+
+This code has been tested with Python3.6 and TensorFlow1.2.0, with a Tesla K80 GPU. The system is Ubuntu 14.04.
 
 ### Installation
-```
-pip install enum
-pip install pypng
-pip install matplotlib
-pip install image
-pip install scipy
-pip install numpy
-pip install tensorflow
-```
 
-Linux:
-`sudo apt-get install python-tk`
+You must have CUDA installed: `make all`
 
-You must have CUDA installed:
-`make all`
+**Note:** you might need to modify [this line](https://github.com/vt-vl-lab/tf_flownet2/blob/master/Makefile#L13), according to the GPU you use.
 
 ### Download weights
-To download the weights for all models (4.4GB), run the `download.sh` script in the `checkpoints` directory. All test scripts rely on these checkpoints to work properly.
+To download the weights for all models (4.4GB), run the `download.sh` script in the `FlowNet2_src/checkpoints` directory. All test scripts rely on these checkpoints to work properly.
 
 
-### Flow Generation (1 image pair)
+### Inference mode
 
 ```
-python -m src.flownet2.test --input_a data/samples/0img0.ppm --input_b data/samples/0img1.ppm --out ./
+python demo.py
 ```
 
-Available models:
-* `flownet2`
-* `flownet_s`
-* `flownet_c`
-* `flownet_cs`
-* `flownet_css` (can edit test.py to use css-ft-sd weights)
-* `flownet_sd`
+If installation is successful, you should see the following:
+![FlowNet2 Sample Prediction](/FlowNet2_src/example/0flow-pred-flownet2.png?raw=true)
 
-If installation is successful, you should predict the following flow from samples/0img0.ppm:
-![FlowNet2 Sample Prediction](/data/samples/0flow-pred-flownet2.png?raw=true)
+Notice that the model itself will handle the RGB to BGR operation for you. And please be care about your input scale and datatype.
 
-### Training
-If you would like to train any of the networks from scratch (replace `flownet2` with the appropriate model):
-```
-python -m src.flownet2.train
-```
-For stacked networks, previous network weights will be loaded and fixed. For example, if training CS, the C weights are loaded and fixed and the S weights are randomly initialized.
+### Performance (w/o fine-tuning)
 
+| Model       | KITTI2012 Train EPE     |  KITTI2015 Train EPE     |  KITTI2015 Train F1     |  Sintel Final Train EPE |
+|-------------|--------|--------|--------|--------|
+| FlowNetS       | 7.2457     |  14.0753     |  0.5096     |  3.9140     |
+| FlowNetC       | 5.9793    |  11.8957     |  0.4509     |  3.1001     |
+| FlowNet2       | 4.3167     |  10.9869     |  0.3241     |  2.1592     |
 
-### Fine-tuning
-TODO
+FlowNetS and FlowNetC are better than paper, but FlowNet2 is slightly worse.
 
-### Benchmarks
-Benchmarks are for a forward pass with each model of two 512x384 images. All benchmarks were tested with a K80 GPU and Intel Xeon CPU E5-2682 v4 @ 2.30GHz. Code was executed with TensorFlow-1.2.1 and python 2.7.12 on Ubuntu 16.04. Resulting times were averaged over 10 runs. The first run is always slower as it sets up the Tensorflow Session.
-
-| | S | C | CS | CSS | SD | 2
-| ------------- | ------------- | ------------- | ------------- | ------------- | ------------- | ------------- |
-| First Run | 681.039ms | 898.792ms | 998.584ms | 1063.357ms | 933.806ms | 1882.003ms |
-| Subsequent Runs | 38.067ms | 78.789ms | 123.300ms | 161.186ms | 62.061ms | 276.641ms |
+### TODO
+* Add fine-tune mode
+* Remove the `training_schedule` variable from inference mode.
 
 
-### Sources
+### Reference
 [1] E. Ilg, N. Mayer, T. Saikia, M. Keuper, A. Dosovitskiy, T. Brox
 FlowNet 2.0: Evolution of Optical Flow Estimation with Deep Networks,
 IEEE Conference in Computer Vision and Pattern Recognition (CVPR), 2017.
+
+### Acknowledgments
+As noted in the beginning, most part are from [sampepose/flownet2-tf](https://github.com/sampepose/flownet2-tf)
